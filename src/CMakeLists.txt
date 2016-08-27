@@ -213,9 +213,20 @@ if(NOT "${PLATFORM}" STREQUAL "windows")
   execute_process(
     COMMAND "${PYTHON_EXECUTABLE}" "-c"
         "import capnp; import os; import sys; sys.stdout.write(os.path.dirname(os.path.dirname(capnp.__file__)))"
+        RESULT_VARIABLE src_pycapnp_include_result_code
         OUTPUT_VARIABLE src_pycapnp_include_dir)
 
+  if(src_pycapnp_include_result_code)
+    message(FATAL_ERROR "ERROR: getting capnproto headers location "
+            "(${src_pycapnp_include_result_code})")
+  endif()
+
+  if(NOT src_pycapnp_include_dir)
+    message(FATAL_ERROR "ERROR: pycapnp's capnproto headers not found.")
+  endif()
+
   message(STATUS "src_pycapnp_include_dir      = ${src_pycapnp_include_dir}")
+
   include_directories(SYSTEM ${src_pycapnp_include_dir})
 endif()
 
@@ -795,7 +806,7 @@ if (NUPIC_BUILD_PYEXT_MODULES)
     endif()
 
 
-    set(SWIG_MODULE_${MODULE_NAME}_EXTRA_DEPS ${extra_deps})
+    add_dependencies(${real_target} ${extra_deps})
     set_target_properties(${real_target} PROPERTIES
                           LINK_FLAGS "${link_flags}")
 
